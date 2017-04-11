@@ -1,0 +1,68 @@
+In file included from /opt/toolchains/gen//m68k-elf/include/genesis.h:11:0,
+                 from src/entity.c:1:
+/opt/toolchains/gen//m68k-elf/include/memory.h:199:6: warning: conflicting types for built-in function ‘memset’ [enabled by default]
+ void memset(void *to, u8 value, u16 len);
+      ^
+/opt/toolchains/gen//m68k-elf/include/memory.h:242:6: warning: conflicting types for built-in function ‘memcpy’ [enabled by default]
+ void memcpy(void *to, const void *from, u16 len);
+      ^
+In file included from /opt/toolchains/gen//m68k-elf/include/genesis.h:15:0,
+                 from src/entity.c:1:
+/opt/toolchains/gen//m68k-elf/include/string.h:83:5: warning: conflicting types for built-in function ‘strcmp’ [enabled by default]
+ s16 strcmp(const char *str1, const char *str2);
+     ^
+/opt/toolchains/gen//m68k-elf/include/string.h:237:5: warning: conflicting types for built-in function ‘sprintf’ [enabled by default]
+ u16 sprintf(char *buffer,const char *fmt, ...);
+     ^
+In file included from /opt/toolchains/gen//m68k-elf/include/genesis.h:11:0,
+                 from src/walking.c:1:
+/opt/toolchains/gen//m68k-elf/include/memory.h:199:6: warning: conflicting types for built-in function ‘memset’ [enabled by default]
+ void memset(void *to, u8 value, u16 len);
+      ^
+/opt/toolchains/gen//m68k-elf/include/memory.h:242:6: warning: conflicting types for built-in function ‘memcpy’ [enabled by default]
+ void memcpy(void *to, const void *from, u16 len);
+      ^
+In file included from /opt/toolchains/gen//m68k-elf/include/genesis.h:15:0,
+                 from src/walking.c:1:
+/opt/toolchains/gen//m68k-elf/include/string.h:83:5: warning: conflicting types for built-in function ‘strcmp’ [enabled by default]
+ s16 strcmp(const char *str1, const char *str2);
+     ^
+/opt/toolchains/gen//m68k-elf/include/string.h:237:5: warning: conflicting types for built-in function ‘sprintf’ [enabled by default]
+ u16 sprintf(char *buffer,const char *fmt, ...);
+     ^
+In file included from src/walking.c:2:0:
+src/main.h:1:12: warning: ‘joy1Input’ initialized and declared ‘extern’ [enabled by default]
+ extern u16 joy1Input = 0;
+            ^
+src/main.h:2:12: warning: ‘joy2Input’ initialized and declared ‘extern’ [enabled by default]
+ extern u16 joy2Input = 0;
+            ^
+src/main.h:5:13: warning: ‘readInput’ declared ‘static’ but never defined [-Wunused-function]
+ static void readInput();
+             ^
+In file included from /opt/toolchains/gen//m68k-elf/include/genesis.h:11:0,
+                 from src/main.c:1:
+/opt/toolchains/gen//m68k-elf/include/memory.h:199:6: warning: conflicting types for built-in function ‘memset’ [enabled by default]
+ void memset(void *to, u8 value, u16 len);
+      ^
+/opt/toolchains/gen//m68k-elf/include/memory.h:242:6: warning: conflicting types for built-in function ‘memcpy’ [enabled by default]
+ void memcpy(void *to, const void *from, u16 len);
+      ^
+In file included from /opt/toolchains/gen//m68k-elf/include/genesis.h:15:0,
+                 from src/main.c:1:
+/opt/toolchains/gen//m68k-elf/include/string.h:83:5: warning: conflicting types for built-in function ‘strcmp’ [enabled by default]
+ s16 strcmp(const char *str1, const char *str2);
+     ^
+/opt/toolchains/gen//m68k-elf/include/string.h:237:5: warning: conflicting types for built-in function ‘sprintf’ [enabled by default]
+ u16 sprintf(char *buffer,const char *fmt, ...);
+     ^
+In file included from src/main.c:8:0:
+src/main.h:1:12: warning: ‘joy1Input’ initialized and declared ‘extern’ [enabled by default]
+ extern u16 joy1Input = 0;
+            ^
+src/main.h:2:12: warning: ‘joy2Input’ initialized and declared ‘extern’ [enabled by default]
+ extern u16 joy2Input = 0;
+            ^
+src/boot/sega.s: Assembler messages:
+src/boot/sega.s:43: Error: file not found: out/rom_head.bin
+make: *** [Makefile:150: src/boot/sega.o] Error 1
