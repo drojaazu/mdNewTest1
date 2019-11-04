@@ -1,6 +1,6 @@
 #include "walking.h"
 
-#include "../res/gfx_walking.h"
+#include "../res/gfx.h"
 #include "entity.h"
 #include "global.h"
 
@@ -8,7 +8,6 @@ u16 joy1Input;
 
 u8 walkingMode = 0;
 
-Sprite sprites[2];
 struct Entity entArle;
 struct Entity entCar;
 
@@ -52,10 +51,10 @@ void initStage() {
 
   // sprite initialization
 
-  sprites[0] =
-      *(SPR_addSprite(&sprArle, 0, 0, TILE_ATTR(PAL1, TRUE, FALSE, FALSE)));
-  sprites[1] =
-      *(SPR_addSprite(&sprCar, 0, 0, TILE_ATTR(PAL2, TRUE, FALSE, FALSE)));
+  entArle.sprite =
+      SPR_addSprite(&sprArle, 0, 0, TILE_ATTR(PAL1, TRUE, FALSE, FALSE));
+  entCar.sprite =
+      SPR_addSprite(&sprCar, 0, 0, TILE_ATTR(PAL2, TRUE, FALSE, FALSE));
   SPR_update();
 
   // set up bg tiles
@@ -64,6 +63,7 @@ void initStage() {
   // VDP_fillTileMapRect(VDP_PLAN_A, TILE_ATTR_FULL(PAL3, 0, 0, 0,
   // TILE_USERINDEX), 0, 0, 40, 40); VDP_fillTileMapRect(VDP_PLAN_A,
   // TILE_ATTR_FULL(PAL3, 0, 0, 0, TILE_USERINDEX+1), 1, 12, 5, 4);
+
   u8 grassX, grassY;
 
   for (grassY = 0; grassY < 40; grassY += 2) {
@@ -98,7 +98,6 @@ void processWalking() {
   updateAnim();
 
   SPR_update();
-  SPR_setPosition(&sprites[0], 10, 10);
   fix32ToStr(entCar.posx, car_posx_msg, 2);
   fix32ToStr(entCar.posy, car_posy_msg, 2);
 
@@ -264,9 +263,9 @@ void updatePhysics() {
     entCar.facing = entArle.facing;
   }
 
-  SPR_setPosition(&sprites[0], fix32ToInt(entArle.posx),
+  SPR_setPosition(entArle.sprite, fix32ToInt(entArle.posx),
                   fix32ToInt(entArle.posy));
-  SPR_setPosition(&sprites[1], fix32ToInt(entCar.posx),
+  SPR_setPosition(entCar.sprite, fix32ToInt(entCar.posx),
                   fix32ToInt(entCar.posy));
 }
 
@@ -275,37 +274,37 @@ void updateAnim() {
   if (entArle.moving) {
     switch (entArle.facing) {
       case FACING_DOWN:
-        SPR_setAnim(&sprites[0], ANIM_WALK_DOWN);
+        SPR_setAnim(entArle.sprite, ANIM_WALK_DOWN);
         break;
       case FACING_DOWN_DIAG:
-        SPR_setAnim(&sprites[0], ANIM_WALK_DOWN_DIAG);
+        SPR_setAnim(entArle.sprite, ANIM_WALK_DOWN_DIAG);
         break;
       case FACING_UP:
-        SPR_setAnim(&sprites[0], ANIM_WALK_UP);
+        SPR_setAnim(entArle.sprite, ANIM_WALK_UP);
         break;
       case FACING_UP_DIAG:
-        SPR_setAnim(&sprites[0], ANIM_WALK_UP_DIAG);
+        SPR_setAnim(entArle.sprite, ANIM_WALK_UP_DIAG);
         break;
       case FACING_SIDE:
-        SPR_setAnim(&sprites[0], ANIM_WALK_SIDE);
+        SPR_setAnim(entArle.sprite, ANIM_WALK_SIDE);
         break;
     }
   } else {
     switch (entArle.facing) {
       case FACING_DOWN:
-        SPR_setAnim(&sprites[0], ANIM_WAIT_DOWN);
+        SPR_setAnim(entArle.sprite, ANIM_WAIT_DOWN);
         break;
       case FACING_DOWN_DIAG:
-        SPR_setAnim(&sprites[0], ANIM_WAIT_DOWN_DIAG);
+        SPR_setAnim(entArle.sprite, ANIM_WAIT_DOWN_DIAG);
         break;
       case FACING_UP:
-        SPR_setAnim(&sprites[0], ANIM_WAIT_UP);
+        SPR_setAnim(entArle.sprite, ANIM_WAIT_UP);
         break;
       case FACING_UP_DIAG:
-        SPR_setAnim(&sprites[0], ANIM_WAIT_UP_DIAG);
+        SPR_setAnim(entArle.sprite, ANIM_WAIT_UP_DIAG);
         break;
       case FACING_SIDE:
-        SPR_setAnim(&sprites[0], ANIM_WAIT_SIDE);
+        SPR_setAnim(entArle.sprite, ANIM_WAIT_SIDE);
         break;
     }
   }
@@ -314,48 +313,48 @@ void updateAnim() {
   if (entCar.moving) {
     switch (entCar.facing) {
       case FACING_DOWN:
-        SPR_setAnim(&sprites[1], ANIM_WALK_DOWN);
+        SPR_setAnim(entCar.sprite, ANIM_WALK_DOWN);
         break;
       case FACING_DOWN_DIAG:
-        SPR_setAnim(&sprites[1], ANIM_WALK_DOWN_DIAG);
+        SPR_setAnim(entCar.sprite, ANIM_WALK_DOWN_DIAG);
         break;
       case FACING_UP:
-        SPR_setAnim(&sprites[1], ANIM_WALK_UP);
+        SPR_setAnim(entCar.sprite, ANIM_WALK_UP);
         break;
       case FACING_UP_DIAG:
-        SPR_setAnim(&sprites[1], ANIM_WALK_UP_DIAG);
+        SPR_setAnim(entCar.sprite, ANIM_WALK_UP_DIAG);
         break;
       case FACING_SIDE:
-        SPR_setAnim(&sprites[1], ANIM_WALK_SIDE);
+        SPR_setAnim(entCar.sprite, ANIM_WALK_SIDE);
         break;
     }
   } else {
     switch (entCar.facing) {
       case FACING_DOWN:
-        SPR_setAnim(&sprites[1], ANIM_WAIT_DOWN);
+        SPR_setAnim(entCar.sprite, ANIM_WAIT_DOWN);
         break;
       case FACING_DOWN_DIAG:
-        SPR_setAnim(&sprites[1], ANIM_WAIT_DOWN_DIAG);
+        SPR_setAnim(entCar.sprite, ANIM_WAIT_DOWN_DIAG);
         break;
       case FACING_UP:
-        SPR_setAnim(&sprites[1], ANIM_WAIT_UP);
+        SPR_setAnim(entCar.sprite, ANIM_WAIT_UP);
         break;
       case FACING_UP_DIAG:
-        SPR_setAnim(&sprites[1], ANIM_WAIT_UP_DIAG);
+        SPR_setAnim(entCar.sprite, ANIM_WAIT_UP_DIAG);
         break;
       case FACING_SIDE:
-        SPR_setAnim(&sprites[1], ANIM_WAIT_SIDE);
+        SPR_setAnim(entCar.sprite, ANIM_WAIT_SIDE);
         break;
     }
   }
 
   if (entCar.hflip)
-    SPR_setVRAMTileIndex(&sprites[1], TILE_ATTR(PAL2, TRUE, FALSE, TRUE));
+    SPR_setHFlip(entCar.sprite, TRUE);
   else
-    SPR_setVRAMTileIndex(&sprites[1], TILE_ATTR(PAL2, TRUE, FALSE, FALSE));
+    SPR_setHFlip(entCar.sprite, FALSE);
 
   if (entArle.hflip)
-    SPR_setVRAMTileIndex(&sprites[0], TILE_ATTR(PAL1, TRUE, FALSE, TRUE));
+    SPR_setHFlip(entArle.sprite, TRUE);
   else
-    SPR_setVRAMTileIndex(&sprites[0], TILE_ATTR(PAL1, TRUE, FALSE, FALSE));
+    SPR_setHFlip(entArle.sprite, FALSE);
 }
