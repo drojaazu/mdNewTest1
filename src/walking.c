@@ -1,9 +1,5 @@
 #include "walking.h"
 
-#include "../res/gfx.h"
-#include "entity.h"
-#include "global.h"
-
 u16 joy1Input;
 
 u8 walkingMode = 0;
@@ -14,11 +10,13 @@ struct Entity entCar;
 s16 ytoward;
 s16 xtoward;
 
-fix32 car_posx;
-fix32 car_posy;
+fix16 car_posx;
+fix16 car_posy;
 
-fix32 p1_posx;
-fix32 p1_posy;
+fix16 p1_posx;
+fix16 p1_posy;
+
+enum dir p1_dir;
 
 void doWalking() {
   switch (walkingMode) {
@@ -39,15 +37,17 @@ void initStage() {
   SPR_init(0, 0, 0);
 
   // entity initialization
-  initEnt(&entArle, FACING_DOWN, 0, 0);
-  initEnt(&entCar, FACING_DOWN, 0, 0);
+  initEnt(&entArle, FACING_DOWN, 0, 0, 100);
+  initEnt(&entCar, FACING_DOWN, 0, 0, 60);
 
   VDP_setPalette(PAL0, palette_black);
   VDP_setPalette(PAL1, sprArle.palette->data);
   VDP_setPalette(PAL2, sprCar.palette->data);
   VDP_setPalette(PAL3, grassTilesPal.data);
 
-  VDP_setTextPalette(PAL1);
+  // VDP_setTextPlan(PLAN_A);
+  // VDP_setTextPriority(1);
+  // VDP_setTextPalette(PAL1);
 
   // sprite initialization
 
@@ -83,7 +83,7 @@ void initStage() {
   }
 
   SYS_enableInts();
-  updateCamera(FIX32(0), FIX32(0));
+  updateCamera(FIX16(0), FIX16(0));
 
   // VDP_fadeIn(0, (3 * 16) - 1, arleDef.palette->data, 20, FALSE);
 
@@ -97,264 +97,129 @@ void processWalking() {
   updatePhysics();
   updateAnim();
 
+  set_anim(&entArle);
+  set_anim(&entCar);
+
   SPR_update();
-  fix32ToStr(entCar.posx, car_posx_msg, 2);
-  fix32ToStr(entCar.posy, car_posy_msg, 2);
+  fix16ToStr(entArle.posx, car_posx_msg, 2);
+  fix16ToStr(entArle.posy, car_posy_msg, 2);
 
   // VDP_drawText(car_posx_msg, 30, 2);
   // VDP_drawText(car_posy_msg, 30, 3);
 }
 
-fix32 camposx = 0;
-fix32 camposy = 0;
+fix16 camposx = 0;
+fix16 camposy = 0;
 
-void updateCamera(fix32 x, fix32 y) {
+void updateCamera(fix16 x, fix16 y) {
   if ((x != camposx) || (y != camposy)) {
     camposx = x;
     camposy = y;
-    VDP_setHorizontalScroll(PLAN_A, fix32ToInt(-camposx));
-    VDP_setVerticalScroll(PLAN_A, fix32ToInt(camposy));
+    VDP_setHorizontalScroll(PLAN_A, fix16ToInt(-camposx));
+    VDP_setVerticalScroll(PLAN_A, fix16ToInt(camposy));
   }
 }
 
 void updatePhysics() {
-  if (joy1Input & BUTTON_UP)
-    ytoward = -1;
-  else if (joy1Input & BUTTON_DOWN)
-    ytoward = 1;
-  else
-    ytoward = 0;
-
-  if (joy1Input & BUTTON_LEFT)
-    xtoward = -1;
-  else if (joy1Input & BUTTON_RIGHT)
-    xtoward = 1;
-  else
-    xtoward = 0;
+  p1_dir = joy1Input;
+  if (p1_dir > 0) entArle.dir = p1_dir;
 
   // set player pos
-  entArle.posx += FIX32(xtoward);
-  entArle.posy += FIX32(ytoward);
-  if (xtoward != 0 || ytoward != 0)
-    entArle.moving = TRUE;
-  else
-    entArle.moving = FALSE;
-
-  if (ytoward > 0) {
-    if (xtoward > 0) {
-      entArle.hflip = TRUE;
-      entArle.facing = FACING_DOWN_DIAG;
-    } else if (xtoward < 0) {
-      entArle.hflip = FALSE;
-      entArle.facing = FACING_DOWN_DIAG;
-    } else {
-      entArle.hflip = FALSE;
-      entArle.facing = FACING_DOWN;
-    }
-  } else if (ytoward < 0) {
-    if (xtoward > 0) {
-      entArle.hflip = TRUE;
-      entArle.facing = FACING_UP_DIAG;
-    } else if (xtoward < 0) {
-      entArle.hflip = FALSE;
-      entArle.facing = FACING_UP_DIAG;
-    } else {
-      entArle.hflip = FALSE;
-      entArle.facing = FACING_UP;
-    }
-  } else if (xtoward != 0) {
-    entArle.facing = FACING_SIDE;
-    if (xtoward > 0) {
-      entArle.hflip = TRUE;
-    } else if (xtoward < 0) {
-      entArle.hflip = FALSE;
-    }
+  if (p1_dir > 0) {
+    if (entArle.vel < entArle.maxspd) entArle.vel += 5;
+  } else {
+    entArle.vel -= 7;
+    if (entArle.vel < 0) entArle.vel = 0;
   }
+
+  if (entArle.dir & up)
+    entArle.posy -= entArle.vel;
+  else if (entArle.dir & down)
+    entArle.posy += entArle.vel;
+
+  if (entArle.dir & right)
+    entArle.posx += entArle.vel;
+  else if (entArle.dir & left)
+    entArle.posx -= entArle.vel;
 
   // set car pos
-  int movXleft = FALSE;
-  int movXright = FALSE;
-  int movYup = FALSE;
-  int movYdown = FALSE;
+  if (entCar.posx != (entArle.posx - 15) ||
+      entCar.posy != (entArle.posy + 10)) {
+    int destX = entArle.posx - 15;
+    int destY = entArle.posy + 10;
+    entCar.dir = 0;
 
-  int destX = 0;
-  int destY = 0;
-  if (entArle.hflip)
-    destX = entArle.posx + FIX32(10);
+    if (entCar.posx < destX)
+      entCar.dir |= right;
+    else if (entCar.posx > destX)
+      entCar.dir |= left;
+    else
+      entCar.dir = entArle.dir;
+
+    if (entCar.posy < destY)
+      entCar.dir |= down;
+    else if (entCar.posy > destY)
+      entCar.dir |= up;
+    else
+      entCar.dir = entArle.dir;
+
+    if (entCar.vel < entCar.maxspd) entCar.vel++;
+
+    if (entCar.dir & up)
+      entCar.posy -= entCar.vel;
+    else if (entCar.dir & down)
+      entCar.posy += entCar.vel;
+
+    if (entCar.dir & right)
+      entCar.posx += entCar.vel;
+    else if (entCar.dir & left)
+      entCar.posx -= entCar.vel;
+  }
+
+  SPR_setPosition(entArle.sprite, fix16ToInt(entArle.posx),
+                  fix16ToInt(entArle.posy));
+  SPR_setPosition(entCar.sprite, fix16ToInt(entCar.posx),
+                  fix16ToInt(entCar.posy));
+
+  fix16 px_scr, py_scr;
+  fix16 npx_cam, npy_cam;
+
+  // get sprite position on screen
+  px_scr = entArle.posx - camposx;
+  py_scr = entArle.posy - camposy;
+
+  // calculate new camera position
+  if (px_scr > FIX16(140))
+    npx_cam = entArle.posx - FIX16(140);
+  else if (px_scr < FIX16(80))
+    npx_cam = entArle.posx - FIX16(80);
   else
-    destX = entArle.posx - FIX32(10);
+    npx_cam = camposx;
+  if (py_scr > FIX16(160))
+    npy_cam = entArle.posy - FIX16(160);
+  else if (py_scr < FIX16(100))
+    npy_cam = entArle.posy - FIX16(100);
+  else
+    npy_cam = camposy;
 
-  if (entArle.facing == FACING_UP || entArle.facing == FACING_UP_DIAG) {
-    destY = entArle.posy + FIX32(15);
-  } else {
-    destY = entArle.posy - FIX32(15);
-  }
+  // clip camera position
+  if (npx_cam < FIX16(0))
+    npx_cam = FIX16(0);
+  else if (npx_cam > FIX16(200))
+    npx_cam = FIX16(200);
+  if (npy_cam < FIX16(0))
+    npy_cam = FIX16(0);
+  else if (npy_cam > FIX16(100))
+    npy_cam = FIX16(100);
 
-  if (entCar.posx != destX || entCar.posy != destY) {
-    entCar.moving = TRUE;
-    if (entCar.posx < destX) {
-      entCar.posx += FIX32(0.5);
-      movXleft = TRUE;
-      entCar.hflip = TRUE;
-    } else if (entCar.posx > destX) {
-      entCar.posx -= FIX32(0.5);
-      movXright = TRUE;
-      entCar.hflip = FALSE;
-    }
-    if (entCar.posy < destY) {
-      entCar.posy += FIX32(0.5);
-      movYdown = TRUE;
-    } else if (entCar.posy > destY) {
-      entCar.posy -= FIX32(0.5);
-      movYup = TRUE;
-    }
-    if (movXleft || movXright) {
-      if (movYdown) {
-        entCar.facing = FACING_DOWN_DIAG;
-      } else if (movYup) {
-        entCar.facing = FACING_UP_DIAG;
-      } else {
-        entCar.facing = FACING_SIDE;
-      }
-    } else if (movYup || movYdown) {
-      if (movYup)
-        entCar.facing = FACING_UP;
-      else if (movYdown)
-        entCar.facing = FACING_DOWN;
-    }
-    entCar.moving = TRUE;
-
-    fix32 px_scr, py_scr;
-    fix32 npx_cam, npy_cam;
-
-    // get sprite position on screen
-    px_scr = entArle.posx - camposx;
-    py_scr = entArle.posy - camposy;
-
-    // calculate new camera position
-    if (px_scr > FIX32(140))
-      npx_cam = entArle.posx - FIX32(140);
-    else if (px_scr < FIX32(80))
-      npx_cam = entArle.posx - FIX32(80);
-    else
-      npx_cam = camposx;
-    if (py_scr > FIX32(160))
-      npy_cam = entArle.posy - FIX32(160);
-    else if (py_scr < FIX32(100))
-      npy_cam = entArle.posy - FIX32(100);
-    else
-      npy_cam = camposy;
-
-    // clip camera position
-    if (npx_cam < FIX32(0))
-      npx_cam = FIX32(0);
-    else if (npx_cam > FIX32(200))
-      npx_cam = FIX32(200);
-    if (npy_cam < FIX32(0))
-      npy_cam = FIX32(0);
-    else if (npy_cam > FIX32(100))
-      npy_cam = FIX32(100);
-
-    // set camera position
-    updateCamera(npx_cam, npy_cam);
-
-  } else {
-    entCar.moving = FALSE;
-    entCar.facing = entArle.facing;
-  }
-
-  SPR_setPosition(entArle.sprite, fix32ToInt(entArle.posx),
-                  fix32ToInt(entArle.posy));
-  SPR_setPosition(entCar.sprite, fix32ToInt(entCar.posx),
-                  fix32ToInt(entCar.posy));
+  // set camera position
+  updateCamera(npx_cam, npy_cam);
 }
 
 void updateAnim() {
   // update Arle
-  if (entArle.moving) {
-    switch (entArle.facing) {
-      case FACING_DOWN:
-        SPR_setAnim(entArle.sprite, ANIM_WALK_DOWN);
-        break;
-      case FACING_DOWN_DIAG:
-        SPR_setAnim(entArle.sprite, ANIM_WALK_DOWN_DIAG);
-        break;
-      case FACING_UP:
-        SPR_setAnim(entArle.sprite, ANIM_WALK_UP);
-        break;
-      case FACING_UP_DIAG:
-        SPR_setAnim(entArle.sprite, ANIM_WALK_UP_DIAG);
-        break;
-      case FACING_SIDE:
-        SPR_setAnim(entArle.sprite, ANIM_WALK_SIDE);
-        break;
-    }
-  } else {
-    switch (entArle.facing) {
-      case FACING_DOWN:
-        SPR_setAnim(entArle.sprite, ANIM_WAIT_DOWN);
-        break;
-      case FACING_DOWN_DIAG:
-        SPR_setAnim(entArle.sprite, ANIM_WAIT_DOWN_DIAG);
-        break;
-      case FACING_UP:
-        SPR_setAnim(entArle.sprite, ANIM_WAIT_UP);
-        break;
-      case FACING_UP_DIAG:
-        SPR_setAnim(entArle.sprite, ANIM_WAIT_UP_DIAG);
-        break;
-      case FACING_SIDE:
-        SPR_setAnim(entArle.sprite, ANIM_WAIT_SIDE);
-        break;
-    }
-  }
+  set_anim(&entArle);
 
   // update Car
-  if (entCar.moving) {
-    switch (entCar.facing) {
-      case FACING_DOWN:
-        SPR_setAnim(entCar.sprite, ANIM_WALK_DOWN);
-        break;
-      case FACING_DOWN_DIAG:
-        SPR_setAnim(entCar.sprite, ANIM_WALK_DOWN_DIAG);
-        break;
-      case FACING_UP:
-        SPR_setAnim(entCar.sprite, ANIM_WALK_UP);
-        break;
-      case FACING_UP_DIAG:
-        SPR_setAnim(entCar.sprite, ANIM_WALK_UP_DIAG);
-        break;
-      case FACING_SIDE:
-        SPR_setAnim(entCar.sprite, ANIM_WALK_SIDE);
-        break;
-    }
-  } else {
-    switch (entCar.facing) {
-      case FACING_DOWN:
-        SPR_setAnim(entCar.sprite, ANIM_WAIT_DOWN);
-        break;
-      case FACING_DOWN_DIAG:
-        SPR_setAnim(entCar.sprite, ANIM_WAIT_DOWN_DIAG);
-        break;
-      case FACING_UP:
-        SPR_setAnim(entCar.sprite, ANIM_WAIT_UP);
-        break;
-      case FACING_UP_DIAG:
-        SPR_setAnim(entCar.sprite, ANIM_WAIT_UP_DIAG);
-        break;
-      case FACING_SIDE:
-        SPR_setAnim(entCar.sprite, ANIM_WAIT_SIDE);
-        break;
-    }
-  }
-
-  if (entCar.hflip)
-    SPR_setHFlip(entCar.sprite, TRUE);
-  else
-    SPR_setHFlip(entCar.sprite, FALSE);
-
-  if (entArle.hflip)
-    SPR_setHFlip(entArle.sprite, TRUE);
-  else
-    SPR_setHFlip(entArle.sprite, FALSE);
+  set_anim(&entCar);
 }

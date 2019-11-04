@@ -19,20 +19,44 @@
 #define ENT_ARLE 0
 #define ENT_CAR 1
 
+#include <genesis.h>
+
+enum dir {
+  up = 1,
+  down = 2,
+  left = 4,
+  right = 8,
+  up_left = 5,
+  up_right = 9,
+  down_left = 6,
+  down_right = 10
+};
+
+enum anim {
+  down_wait,
+  down_walk,
+  down_wait_diag,
+  down_walk_diag,
+  up_wait_diag,
+  up_walk_diag,
+  side_wait,
+  side_walk,
+  up_wait,
+  up_walk
+};
+
 struct Entity {
   Sprite* sprite;
 
-  char facing;
-  fix32 posx;
-  fix32 posy;
+  fix16 posx;
+  fix16 posy;
+  fix16 vel;
+  fix16 maxspd;
 
-  fix32 spdx;
-  fix32 spdy;
-
-  int moving;
-  fix32 maxspd;
-  int hflip;
+  enum dir dir;
+  enum anim anim;
 };
 
-void initEnt(struct Entity* ent, char initFacing, fix32 initPosx,
-             fix32 initPosy);
+void set_anim(struct Entity* ent);
+
+void initEnt(struct Entity*, enum dir, fix16, fix16, fix16);
